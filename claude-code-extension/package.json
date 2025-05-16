@@ -1,0 +1,61 @@
+{
+  "name": "claude-code-extension",
+  "displayName": "Claude Code Interface",
+  "description": "A lightweight VS Code extension that creates an interface for Claude Code in a terminal",
+  "publisher": "anand-tyagi",
+  "version": "0.0.2",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:claude-code-extension.openChat",
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "claude-code-extension.openChat",
+        "title": "Open Claude Code Chat"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "webpack --mode production",
+    "webpack": "webpack --mode development",
+    "webpack-dev": "webpack --mode development --watch",
+    "compile": "tsc -p ./",
+    "lint": "eslint src --ext ts",
+    "package": "npx @vscode/vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^16.18.126",
+    "@types/vscode": "^1.96.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "@vscode/vsce": "^3.3.2",
+    "eslint": "^8.57.1",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3",
+    "webpack": "^5.99.8",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "parse-diff": "^0.11.1"
+  },
+  "keywords": [
+    "claude",
+    "ai",
+    "code",
+    "assistant"
+  ],
+  "author": "Anand Tyagi 🤝 Claude Code",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anandtyagi/claude-code-extension"
+  }
+}
