@@ -1,18 +1,5 @@
 import parseDiff from 'parse-diff';
-
-// Interface for the Claude Code response
-export interface ClaudeResponse {
-    answerText: string;
-    fileChanges: FileChange[];
-}
-
-// Interface for file changes
-export interface FileChange {
-    filePath: string;
-    additions: number;
-    deletions: number;
-    diffLines: string[];
-}
+import { ClaudeResponse, FileChange, LineChanges } from '../models/types';
 
 // Parse the Claude Code response
 export function parseClaudeResponse(responseText: string): ClaudeResponse {
@@ -125,13 +112,10 @@ export function transformToUnifiedDiff(diffLines: string[]): string {
 }
 
 // Get the line numbers for added/removed lines from a parsed diff
-export function getChangedLineNumbers(diffOutput: string): { 
-    addedLines: number[], 
-    removedLines: number[] 
-} {
-    const result = {
-        addedLines: [] as number[],
-        removedLines: [] as number[]
+export function getChangedLineNumbers(diffOutput: string): LineChanges {
+    const result: LineChanges = {
+        addedLines: [],
+        removedLines: []
     };
     
     try {
