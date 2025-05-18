@@ -42,6 +42,10 @@ export function activate(context: vscode.ExtensionContext) {
 						// Open file in editor
 						openFileWithHighlights(message.file);
 						return;
+					case 'getWorkspaceFiles':
+						// Get and send workspace files
+						getWorkspaceFiles(panel);
+						return;
 				}
 			},
 			undefined,
@@ -231,6 +235,65 @@ function processFileChangesForHighlighting(fileChanges: FileChange[]) {
 	}
 }
 
+// Function to get all workspace files and send them to the webview
+async function getWorkspaceFiles(panel: vscode.WebviewPanel) {
+	try {
+		const workspaceFolders = vscode.workspace.workspaceFolders;
+		if (!workspaceFolders) {
+			panel.webview.postMessage({ 
+				command: 'workspaceFiles', 
+				files: [] 
+			});
+			return;
+		}
+		
+		// For each workspace folder, get all files
+		const allFiles: string[] = [];
+		
+		for (const folder of workspaceFolders) {
+			const relativePath = folder.uri.fsPath;
+			const globPattern = new vscode.RelativePattern(folder, '**/*');
+			
+			// Exclude node_modules, .git, and other common directories to avoid too many files
+			const files = await vscode.workspace.findFiles(
+				globPattern, 
+				'{**/node_modules/**,**/.git/**,**/dist/**,**/out/**,**/.next/**,**/.cache/**,**/build/**}'
+			);
+			
+			// Add files to the list
+			for (const file of files) {
+				// Skip directories (we only want files)
+				try {
+					const stat = await vscode.workspace.fs.stat(file);
+					if (stat.type === vscode.FileType.File) {
+						allFiles.push(file.fsPath);
+					}
+				} catch (error) {
+					// Skip if we can't get file stats
+					continue;
+				}
+			}
+		}
+		
+		// Sort files by path for easier browsing
+		allFiles.sort();
+		
+		// Send files to webview
+		panel.webview.postMessage({ 
+			command: 'workspaceFiles', 
+			files: allFiles 
+		});
+		
+	} catch (error) {
+		console.error('Error getting workspace files:', error);
+		// Send empty list in case of error
+		panel.webview.postMessage({ 
+			command: 'workspaceFiles', 
+			files: [] 
+		});
+	}
+}
+
 // Open a file in the editor and highlight changes
 async function openFileWithHighlights(filePath: string) {
 	try {
@@ -335,7 +398,125 @@ function getWebviewContent(webview: vscode.Webview, context: vscode.ExtensionCon
 		
 		.input-container {
 			display: flex;
+			flex-direction: column;
 			padding: 10px 0;
+		}
+		
+		.file-selection-area {
+			margin-bottom: 10px;
+			display: flex;
+			flex-direction: column;
+		}
+		
+		.file-selection-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 5px;
+		}
+		
+		.selected-files {
+			display: flex;
+			flex-wrap: wrap;
+			margin-bottom: 8px;
+			padding: 5px;
+			border: 1px solid var(--vscode-input-border);
+			border-radius: 4px;
+			background-color: var(--vscode-editor-background);
+			min-height: 30px;
+		}
+		
+		.selected-file-tag {
+			display: flex;
+			align-items: center;
+			background-color: var(--vscode-badge-background);
+			color: var(--vscode-badge-foreground);
+			border-radius: 4px;
+			padding: 2px 6px;
+			margin: 2px;
+			font-size: 12px;
+		}
+		
+		.selected-file-tag .remove-file {
+			margin-left: 5px;
+			cursor: pointer;
+			font-weight: bold;
+		}
+		
+		.file-selector-toggle {
+			display: flex;
+			align-items: center;
+			cursor: pointer;
+			color: var(--vscode-textLink-foreground);
+			user-select: none;
+		}
+		
+		.file-selector-controls {
+			display: flex;
+			align-items: center;
+		}
+		
+		.file-selector-search {
+			margin-right: 8px;
+			padding: 4px;
+			border: 1px solid var(--vscode-input-border);
+			border-radius: 4px;
+			color: var(--vscode-input-foreground);
+			background-color: var(--vscode-input-background);
+		}
+		
+		.clear-files-btn {
+			background-color: var(--vscode-button-secondaryBackground);
+			color: var(--vscode-button-secondaryForeground);
+			border: none;
+			border-radius: 4px;
+			padding: 4px 8px;
+			cursor: pointer;
+			font-size: 12px;
+		}
+		
+		.clear-files-btn:hover {
+			background-color: var(--vscode-button-secondaryHoverBackground);
+		}
+		
+		.file-selector {
+			display: none;
+			max-height: 200px;
+			overflow-y: auto;
+			border: 1px solid var(--vscode-input-border);
+			border-radius: 4px;
+			margin-bottom: 8px;
+			padding: 5px;
+			background-color: var(--vscode-dropdown-background);
+		}
+		
+		.file-selector.visible {
+			display: block;
+		}
+		
+		.file-checkbox-item {
+			display: flex;
+			align-items: center;
+			padding: 3px 5px;
+			cursor: pointer;
+			border-radius: 3px;
+		}
+		
+		.file-checkbox-item:hover {
+			background-color: var(--vscode-list-hoverBackground);
+		}
+		
+		.file-checkbox-item input {
+			margin-right: 8px;
+		}
+		
+		.file-path {
+			font-size: 12px;
+			word-break: break-all;
+		}
+		
+		.input-row {
+			display: flex;
 		}
 		
 		#userInput {
@@ -347,7 +528,7 @@ function getWebviewContent(webview: vscode.Webview, context: vscode.ExtensionCon
 			background-color: var(--vscode-input-background);
 		}
 		
-		button {
+		#sendButton {
 			margin-left: 10px;
 			padding: 8px 15px;
 			background-color: var(--vscode-button-background);
@@ -357,7 +538,7 @@ function getWebviewContent(webview: vscode.Webview, context: vscode.ExtensionCon
 			cursor: pointer;
 		}
 		
-		button:hover {
+		#sendButton:hover {
 			background-color: var(--vscode-button-hoverBackground);
 		}
 		
@@ -427,8 +608,33 @@ function getWebviewContent(webview: vscode.Webview, context: vscode.ExtensionCon
 			</div>
 		</div>
 		<div class="input-container">
-			<input type="text" id="userInput" placeholder="Type your question or request...">
-			<button id="sendButton">Send</button>
+			<div class="file-selection-area">
+				<div class="file-selection-header">
+					<div class="file-selector-toggle" id="fileSelectorToggle">
+						<span>📁 Add files as context</span>
+					</div>
+					<div class="file-selector-controls">
+						<input 
+							type="text" 
+							class="file-selector-search" 
+							id="fileSearch" 
+							placeholder="Search files..."
+							style="display: none;">
+						<button 
+							class="clear-files-btn" 
+							id="clearFilesBtn"
+							style="display: none;">
+							Clear All
+						</button>
+					</div>
+				</div>
+				<div class="selected-files" id="selectedFiles"></div>
+				<div class="file-selector" id="fileSelector"></div>
+			</div>
+			<div class="input-row">
+				<input type="text" id="userInput" placeholder="Type your question or request...">
+				<button id="sendButton">Send</button>
+			</div>
 		</div>
 	</div>
 
@@ -440,22 +646,69 @@ function getWebviewContent(webview: vscode.Webview, context: vscode.ExtensionCon
 		const messagesContainer = document.getElementById('messagesContainer');
 		const userInput = document.getElementById('userInput');
 		const sendButton = document.getElementById('sendButton');
+		const fileSelectorToggle = document.getElementById('fileSelectorToggle');
+		const fileSelector = document.getElementById('fileSelector');
+		const selectedFiles = document.getElementById('selectedFiles');
+		const fileSearch = document.getElementById('fileSearch');
+		const clearFilesBtn = document.getElementById('clearFilesBtn');
 		
-		// Keep track of loading state
+		// State
 		let isLoading = false;
 		let loadingIndicator = null;
+		let workspaceFiles = [];
+		let selectedFilesPaths = [];
+		
+		// Request workspace files from the extension
+		vscode.postMessage({
+			command: 'getWorkspaceFiles'
+		});
+		
+		// Toggle file selector visibility
+		fileSelectorToggle.addEventListener('click', () => {
+			const isVisible = fileSelector.classList.toggle('visible');
+			
+			// Show/hide search and clear button based on visibility
+			fileSearch.style.display = isVisible ? 'block' : 'none';
+			clearFilesBtn.style.display = isVisible ? 'block' : 'none';
+		});
+		
+		// Clear all selected files
+		clearFilesBtn.addEventListener('click', () => {
+			selectedFilesPaths = [];
+			updateSelectedFilesUI();
+			
+			// Uncheck all checkboxes in the file selector
+			const checkboxes = fileSelector.querySelectorAll('input[type="checkbox"]');
+			checkboxes.forEach(checkbox => {
+				checkbox.checked = false;
+			});
+		});
+		
+		// Filter files based on search input
+		fileSearch.addEventListener('input', () => {
+			const searchTerm = fileSearch.value.toLowerCase();
+			updateFileSelector(searchTerm);
+		});
 		
 		// Send message function
 		function sendMessage() {
 			const userQuery = userInput.value.trim();
 			if (userQuery && !isLoading) {
+				// Prepare the message with context files if any
+				let finalMessage = userQuery;
+				
+				// Prepend selected files as context if any are selected
+				if (selectedFilesPaths.length > 0) {
+					finalMessage = \`use the following files as context: \${selectedFilesPaths.join(', ')} \${userQuery}\`;
+				}
+				
 				// Clear input
 				userInput.value = '';
 				
 				// Send message to extension
 				vscode.postMessage({
 					command: 'userQuery',
-					text: userQuery
+					text: finalMessage
 				});
 			}
 		}
@@ -468,11 +721,102 @@ function getWebviewContent(webview: vscode.Webview, context: vscode.ExtensionCon
 			}
 		});
 		
+		// Function to update the file selector UI
+		function updateFileSelector(searchTerm = '') {
+			fileSelector.innerHTML = '';
+			
+			// Filter files based on search term
+			const filteredFiles = searchTerm 
+				? workspaceFiles.filter(file => file.toLowerCase().includes(searchTerm.toLowerCase()))
+				: workspaceFiles;
+			
+			// Add files to selector
+			filteredFiles.forEach(file => {
+				const item = document.createElement('label');
+				item.className = 'file-checkbox-item';
+				
+				const checkbox = document.createElement('input');
+				checkbox.type = 'checkbox';
+				checkbox.value = file;
+				checkbox.checked = selectedFilesPaths.includes(file);
+				
+				checkbox.addEventListener('change', () => {
+					if (checkbox.checked) {
+						// Add file to selected files if not already included
+						if (!selectedFilesPaths.includes(file)) {
+							selectedFilesPaths.push(file);
+						}
+					} else {
+						// Remove file from selected files
+						const index = selectedFilesPaths.indexOf(file);
+						if (index !== -1) {
+							selectedFilesPaths.splice(index, 1);
+						}
+					}
+					updateSelectedFilesUI();
+				});
+				
+				const filePathSpan = document.createElement('span');
+				filePathSpan.className = 'file-path';
+				filePathSpan.textContent = file;
+				
+				item.appendChild(checkbox);
+				item.appendChild(filePathSpan);
+				fileSelector.appendChild(item);
+			});
+		}
+		
+		// Function to update the selected files UI
+		function updateSelectedFilesUI() {
+			selectedFiles.innerHTML = '';
+			
+			if (selectedFilesPaths.length === 0) {
+				selectedFiles.innerHTML = '<div style="color: var(--vscode-descriptionForeground); font-style: italic; padding: 5px;">No files selected</div>';
+				return;
+			}
+			
+			selectedFilesPaths.forEach(file => {
+				const tag = document.createElement('div');
+				tag.className = 'selected-file-tag';
+				
+				// Get just the filename (not the full path) for display
+				const fileName = file.split('/').pop();
+				
+				const nameSpan = document.createElement('span');
+				nameSpan.textContent = fileName;
+				nameSpan.title = file; // Show full path on hover
+				
+				const removeBtn = document.createElement('span');
+				removeBtn.className = 'remove-file';
+				removeBtn.textContent = '×';
+				removeBtn.title = 'Remove file';
+				removeBtn.addEventListener('click', () => {
+					const index = selectedFilesPaths.indexOf(file);
+					if (index !== -1) {
+						selectedFilesPaths.splice(index, 1);
+						updateSelectedFilesUI();
+						updateFileSelector(fileSearch.value);
+					}
+				});
+				
+				tag.appendChild(nameSpan);
+				tag.appendChild(removeBtn);
+				selectedFiles.appendChild(tag);
+			});
+		}
+		
 		// Listen for messages from the extension
 		window.addEventListener('message', event => {
 			const message = event.data;
 			
 			switch (message.command) {
+				case 'workspaceFiles':
+					// Update the files list
+					workspaceFiles = message.files;
+					updateFileSelector();
+					updateSelectedFilesUI();
+					break;
+					
 				case 'userMessage':
 					// Add user message to the chat
 					addMessage(message.text, 'user');
@@ -615,6 +959,9 @@ function getWebviewContent(webview: vscode.Webview, context: vscode.ExtensionCon
 			// Scroll to bottom
 			messagesContainer.scrollTop = messagesContainer.scrollHeight;
 		}
+		
+		// Initialize UI
+		updateSelectedFilesUI();
 	</script>
 </body>
 </html>`;

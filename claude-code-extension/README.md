@@ -7,6 +7,8 @@ A Visual Studio Code extension that provides a chat-style interface to Claude Co
 - Chat with Claude Code directly within VS Code
 - Send messages to Claude through a convenient interface
 - Interact with Claude in a dedicated terminal
+- File context selection to help Claude understand your codebase
+- Search and select specific files to provide as context
 - Simple, lightweight design with minimal dependencies
 
 ## Requirements
@@ -29,9 +31,15 @@ A Visual Studio Code extension that provides a chat-style interface to Claude Co
 1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 2. Type "Open Claude Code Chat" and select the command
 3. A chat panel will open and a terminal will be created where Claude Code runs
-4. Type your request in the input field and click Send
-5. Your message will be sent to the Claude Code terminal
-6. View Claude's responses directly in the terminal
+4. (Optional) Click "Add files as context" to select relevant files for Claude
+   - Search for specific files using the search box
+   - Check the boxes next to files you want to include
+   - Selected files will appear as tags above the input field
+   - Remove individual files by clicking the × on the tag
+   - Clear all selected files with the "Clear All" button
+5. Type your request in the input field and click Send
+6. Your message with the selected files as context will be sent to the Claude Code terminal
+7. View Claude's responses directly in the terminal
 
 ## How It Works
 
