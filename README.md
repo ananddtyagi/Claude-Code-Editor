@@ -22,8 +22,8 @@ A Visual Studio Code extension that provides a chat-style interface to Claude Co
 
 ## Installation
 
-1. Install the extension from the VS Code marketplace
-2. Or install manually from the VSIX file:
+1. Install the extension from the [VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=AnandTyagi.claude-code-editor)
+2. Or install manually from the VSIX file: [Open VSX Page](https://open-vsx.org/extension/AnandTyagi/claude-code-editor)
    - Download the `.vsix` file
    - In VS Code, go to Extensions view
    - Click the "..." menu (ellipsis) and select "Install from VSIX"
