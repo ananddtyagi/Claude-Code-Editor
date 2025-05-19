@@ -278,7 +278,7 @@ export function getWebviewContent(webview: vscode.Webview, context: vscode.Exten
     <div class="container">
         <div class="messages-container" id="messagesContainer">
             <div class="message assistant-message">
-                Hello! I'm Claude Code. How can I help you with your code today?
+                Hello! Send a message to get started.
             </div>
         </div>
         <div class="input-container">

@@ -1,16 +1,11 @@
-import * as vscode from 'vscode';
 import * as child_process from 'child_process';
+import * as vscode from 'vscode';
 import { processFileChangesForHighlighting } from './fileService';
 import { parseClaudeResponse } from './responseParser';
-import { ClaudeResponse } from '../models/types';
 
 // Global variables for managing the Claude process and response handling
 let claudeProcess: child_process.ChildProcess | undefined;
-let responseBuffer: string = '';
 let inResponseMode: boolean = false;
-let lastResponseTimestamp: number = 0;
-let responseTimeout: NodeJS.Timeout | undefined;
-let globalResponseTimeout: NodeJS.Timeout | undefined;
 
 // Create an output channel for logging
 const outputChannel = vscode.window.createOutputChannel('Claude Code Extension');
@@ -20,7 +15,6 @@ const outputChannel = vscode.window.createOutputChannel('Claude Code Extension')
  */
 function log(message: string) {
     outputChannel.appendLine(`[${new Date().toISOString()}] ${message}`);
-    outputChannel.show(true);
     console.log(message);
 }
 
@@ -28,12 +22,16 @@ function log(message: string) {
  * Handle user queries to Claude Code
  */
 export async function handleUserQuery(query: string, panel: vscode.WebviewPanel) {
-    // Start Claude Code process if not already running
-    if (!claudeProcess) {
-        try {
-            const workspaceFolders = vscode.workspace.workspaceFolders;
-            const cwd = workspaceFolders ? workspaceFolders[0].uri.fsPath : process.cwd();
-            
+    // Check if the Claude Code terminal already exists
+    // Use startsWith to handle indexed terminals like "Claude Code (1)"
+    let terminal = vscode.window.terminals.find(t => t.name.startsWith('Claude Code'));
+    
+    log(`Terminals found: ${vscode.window.terminals.map(t => t.name).join(', ')}`);
+    log(`Found Claude Code terminal: ${terminal ? 'Yes' : 'No'}`);
+
+    // Only create a new terminal if one doesn't exist
+    if (!terminal) {
+        try {            
             // Show a loading indicator in the webview
             panel.webview.postMessage({ 
                 command: 'loadingState', 
@@ -42,7 +40,7 @@ export async function handleUserQuery(query: string, panel: vscode.WebviewPanel)
             });
             
             // Create a Claude Code terminal instead of spawning a process
-            const terminal = vscode.window.createTerminal('Claude Code');
+            terminal = vscode.window.createTerminal('Claude Code');
             terminal.show();
             
             // Run Claude Code in the terminal
@@ -91,9 +89,7 @@ export async function handleUserQuery(query: string, panel: vscode.WebviewPanel)
             text: query 
         });
         
-        // Find the Claude Code terminal
-        const terminal = vscode.window.terminals.find(t => t.name === 'Claude Code');
-        
+        // We already have a terminal reference from the check at the beginning of this function
         if (terminal) {
             // Focus the terminal
             terminal.show();
@@ -103,15 +99,28 @@ export async function handleUserQuery(query: string, panel: vscode.WebviewPanel)
             
             log(`Query sent to Claude Code terminal: ${query.substring(0, 50)}${query.length > 50 ? '...' : ''}`);
         } else {
-            // Create a new terminal if it was closed
-            const newTerminal = vscode.window.createTerminal('Claude Code');
-            newTerminal.show();
-            newTerminal.sendText('claude');
+            // This code branch should not be reached due to our earlier check,
+            // but kept as a fallback for unexpected cases
+            log('Terminal reference lost, creating a new one');
+            // This should never happen because of our terminal check above, 
+            // but we'll check for all terminals again as a safety measure
+            let existingTerminal = vscode.window.terminals.find(t => t.name.startsWith('Claude Code'));
             
-            // Wait a moment for Claude to start up
-            setTimeout(() => {
-                newTerminal.sendText(query);
-            }, 2000);
+            if (existingTerminal) {
+                // Use the existing terminal if found
+                existingTerminal.show();
+                existingTerminal.sendText(query);
+            } else {
+                // Create a new terminal only if we still don't have one
+                const newTerminal = vscode.window.createTerminal('Claude Code');
+                newTerminal.show();
+                newTerminal.sendText('claude');
+                
+                // Wait a moment for Claude to start up
+                setTimeout(() => {
+                    newTerminal.sendText(query);
+                }, 2000);
+            }
             
             log(`Created new Claude Code terminal and sent query: ${query.substring(0, 50)}${query.length > 50 ? '...' : ''}`);
         }
