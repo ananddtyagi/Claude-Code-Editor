@@ -1,9 +1,9 @@
 {
-  "name": "claude-code-extension",
+  "name": "claude-code-editor",
   "displayName": "Claude Code Editor",
   "description": "A lightweight VS Code extension that creates an interface for Claude Code with file context support",
-  "publisher": "Anand Tyagi",
-  "version": "0.0.3",
+  "publisher": "AnandTyagi",
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -56,6 +56,6 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/anandtyagi/claude-code-extension"
+    "url": "https://github.com/ananddtyagi/Claude-Code-Editor"
   }
 }
