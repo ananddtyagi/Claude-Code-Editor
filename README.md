@@ -49,6 +49,18 @@ This extension:
 3. Forwards your messages to the Claude Code terminal
 4. Allows you to see Claude's responses in the terminal window
 
+## Extension Marketplace Display Information
+
+**Claude Code Interface**
+
+*A lightweight VS Code extension that creates an interface for Claude Code with file context support*
+
+This extension provides a convenient interface to interact with Claude Code directly within VS Code. It allows you to send messages to Claude through a chat panel and view responses in a dedicated terminal. You can also select files from your workspace to provide as context, helping Claude better understand your codebase.
+
+**Categories:** AI, Productivity, Other
+
+**Keywords:** claude, ai, code, assistant
+
 ## Troubleshooting
 
 - If Claude Code is not installed, the extension will show an error message
@@ -58,7 +70,7 @@ This extension:
 
 ## Contributing
 
-Contributions are welcome! Feel free to submit pull requests or open issues on the GitHub repository.
+Contributions are welcome! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to contribute to this project.
 
 ## License
 
