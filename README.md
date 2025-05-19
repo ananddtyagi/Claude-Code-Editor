@@ -1,6 +1,6 @@
 # Claude Code Interface for VS Code
 
-A Visual Studio Code extension that provides a chat-style interface to Claude Code, allowing you to interact with Claude directly within VS Code.
+A Visual Studio Code extension that provides a chat-style interface to Claude Code, allowing you to interact with Claude directly within VS Code. 
 
 ## Features
 
@@ -75,3 +75,5 @@ Contributions are welcome! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) fil
 ## License
 
 This extension is licensed under the MIT License.
+
+Created by [Anand Tyagi](https://github.com/anandtyagi) 🤝 Claude Code
