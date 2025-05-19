@@ -3,7 +3,7 @@
   "displayName": "Claude Code Editor",
   "description": "A lightweight VS Code extension that creates an interface for Claude Code with file context support",
   "publisher": "AnandTyagi",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.96.0"
   },
