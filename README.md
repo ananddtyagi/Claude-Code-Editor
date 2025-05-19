@@ -11,6 +11,9 @@ A Visual Studio Code extension that provides a chat-style interface to Claude Co
 - Search and select specific files to provide as context
 - Simple, lightweight design with minimal dependencies
 
+![Screen Recording May 19 2025](https://github.com/user-attachments/assets/a6a49cad-f845-4f08-be71-cb3b7a4eb8b2)
+
+
 ## Requirements
 
 - [Claude Code CLI](https://github.com/anthropics/claude-code) must be installed and authenticated
